@@ -1,0 +1,8 @@
+include LICENSE
+include UNICODE-LICENSE
+include README.md
+recursive-include pyuegc *.py
+recursive-exclude * __pycache__
+recursive-exclude * *.pyc
+prune pyuegc/tests
+prune pyuegc/tools
