@@ -19,35 +19,23 @@ To get the version of the Unicode character database currently used:
 
 ### Example usage
 ```python
->>> from pyuegc import EGC
->>> len("e\u0301le\u0300ve")
-7
->>> len(EGC("e\u0301le\u0300ve"))
-5
->>> EGC("e\u0301le\u0300ve")
-['é', 'l', 'è', 'v', 'e']
->>>
->>> s = "Z̸͕̪̆᷾᷾︣̌͊̕͝a̸̛͎ͭ͛̉᷆̿̂̚l̸̨̧̛̹̪̦̞̳ͧͬ̈́̽͜ǵ̶̢̛͓᷿̼̱̗̳̏︠o̵̘͓̣͚̍̎͆ͣ︡̓̓̅͠"
->>> len(s)
-67
->>> clusters = EGC(s)
->>> clusters
-['Z̸͕̪̆᷾᷾︣̌͊̕͝', 'a̸̛͎ͭ͛̉᷆̿̂̚', 'l̸̨̧̛̹̪̦̞̳ͧͬ̈́̽͜', 'ǵ̶̢̛͓᷿̼̱̗̳̏︠', 'o̵̘͓̣͚̍̎͆ͣ︡̓̓̅͠']
->>> len(clusters)
-5
->>> s[:2]
-'Z̆'
->>> "".join(clusters[:2])
-'Z̸͕̪̆᷾᷾︣̌͊̕͝a̸̛͎ͭ͛̉᷆̿̂̚'
->>> 
->>> s = "기운찰만하다"
->>> len(s)
-15
->>> clusters = EGC(s)
->>> clusters
-['기', '운', '찰', '만', '하', '다']
->>> len(clusters)
-6
+from pyuegc import EGC
+
+for s in ["e\u0301le\u0300ve", "Z̷̳̎a̸̛ͅl̷̻̇g̵͉̉o̸̰͒", "기운찰만하다"]:
+    egc = EGC(s)
+    print(f"{len(s):>2}, {len(egc)}: {egc}")
+
+#  7, 5: ['é', 'l', 'è', 'v', 'e']
+# 20, 5: ['Z̷̳̎', 'a̸̛ͅ', 'l̷̻̇', 'g̵͉̉', 'o̸̰͒']
+# 15, 6: ['기', '운', '찰', '만', '하', '다']
+
+
+s = "ai\u0302ne\u0301e"  # aînée
+print("".join(reversed(s)))
+print("".join(reversed(EGC(s))))
+
+# éen̂ia -> wrong (diacritics are messed up)
+# eénîa -> right (regardless of the Unicode normalization form)
 ```
 
 ### References

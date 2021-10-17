@@ -12,9 +12,8 @@ setup(
     version=__version__,
     description=(
         "An implementation of the Unicode algorithm for breaking code point "
-        "sequences into extended grapheme clusters as specified in UAX #29, "
-        "“Unicode Text Segmentation”. This library supports version {} of the "
-        "Unicode Standard."
+        "sequences into extended grapheme clusters as specified in UAX #29. "
+        "This library supports version {} of the Unicode Standard."
         .format(UNICODE_VERSION[:-2])
     ),
     long_description=long_description,

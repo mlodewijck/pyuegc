@@ -33,7 +33,7 @@ UNICODE_VERSION = "14.0.0"
 UCD_VERSION = UNICODE_VERSION
 
 __author__  = "Marc Lodewijck"
-__version__ = "14.0.0rc1"
+__version__ = "14.0.0rc2"
 
 
 from pyuegc.unicode import UCD_VERSION as _UCD
