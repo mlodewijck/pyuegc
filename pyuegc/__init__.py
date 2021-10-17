@@ -1,7 +1,7 @@
 """A python implementation of the Unicode algorithm for breaking strings
 of text (i.e., code point sequences) into extended grapheme clusters. This
-package supports version 14.0 of the Unicode Standard, released September 14,
-2021. It has been successfully tested against the Unicode test file found at
+package supports version 14.0 of the Unicode Standard (released September 14,
+2021). It has been successfully tested against the Unicode test file found at
 www.unicode.org/Public/14.0.0/ucd/auxiliary/GraphemeBreakTest.txt
 
 To get the version of the Unicode character database currently used:
@@ -33,7 +33,7 @@ UNICODE_VERSION = "14.0.0"
 UCD_VERSION = UNICODE_VERSION
 
 __author__  = "Marc Lodewijck"
-__version__ = "14.0.0rc2"
+__version__ = "14.0.0"
 
 
 from pyuegc.unicode import UCD_VERSION as _UCD
