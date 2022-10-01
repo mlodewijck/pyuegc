@@ -44,6 +44,6 @@ This implementation is based on the following resources:
 - [Unicode Standard Annex #29: Unicode Text Segmentation, version&nbsp;41](https://www.unicode.org/reports/tr29/tr29-41.html)
 
 ### Licenses
-The code is available under the [MIT license](https://github.com/mlodewijck/pyuegc/blob/master/LICENSE).
+The code is available under the [MIT license](https://github.com/mlodewijck/pyuegc/blob/main/LICENSE).
 
-Usage of Unicode data files is governed by the [UNICODE TERMS OF USE](https://www.unicode.org/copyright.html), a copy of which is included as [UNICODE-LICENSE](https://github.com/mlodewijck/pyuegc/blob/master/UNICODE-LICENSE).
+Usage of Unicode data files is governed by the [UNICODE TERMS OF USE](https://www.unicode.org/copyright.html), a copy of which is included as [UNICODE-LICENSE](https://github.com/mlodewijck/pyuegc/blob/main/UNICODE-LICENSE).
