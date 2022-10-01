@@ -1,41 +1,36 @@
-from setuptools import setup, find_packages
+"""Setup script for pyuegc."""
 
-from pyuegc import __version__, UNICODE_VERSION
+from setuptools import setup, find_packages
 
 URL = "https://github.com/mlodewijck/pyuegc"
 
-with open("README.md", "r", encoding="utf-8") as fh:
-    long_description = fh.read()
+
+def get_version():
+    version_file = "pyuegc/_version.py"
+    with open(version_file) as f:
+        exec(compile(f.read(), version_file, "exec"))
+    return locals()["__version__"]
+
+with open("README.md", encoding="utf-8") as f:
+    README = f.read()
 
 setup(
     name="pyuegc",
-    version=__version__,
+    version=get_version(),
     description=(
         "An implementation of the Unicode algorithm for breaking code point "
-        "sequences into extended grapheme clusters as specified in UAX #29. "
-        "This library supports version {} of the Unicode Standard."
-        .format(UNICODE_VERSION[:-2])
+        "sequences into extended grapheme clusters as specified in UAX #29"
     ),
-    long_description=long_description,
+    long_description=README,
     long_description_content_type="text/markdown",
-    url=URL,
     author="Marc Lodewijck",
     author_email="mlodewijck@gmail.com",
     license="MIT",
-    classifiers=[
-        "Intended Audience :: Developers",
-        "Topic :: Software Development",
-        "Topic :: Software Development :: Internationalization",
-        "Topic :: Text Processing",
-        "Topic :: Utilities",
-        "License :: OSI Approved :: MIT License",
-        "Programming Language :: Python :: 3 :: Only",
-        "Programming Language :: Python :: 3.6",
-        "Programming Language :: Python :: 3.7",
-        "Programming Language :: Python :: 3.8",
-        "Programming Language :: Python :: 3.9",
-        "Programming Language :: Python :: 3.10",
-    ],
+    url=URL,
+    project_urls={
+        "Bug Reports": "{}/issues".format(URL),
+        "Source": "{}/".format(URL),
+    },
     keywords=[
         "Unicode",
         "Unicode grapheme clusters",
@@ -45,12 +40,24 @@ setup(
         "graphemes",
         "segmentation",
     ],
+    # Trove classifiers
+    classifiers=[
+        "Intended Audience :: Developers",
+        "License :: OSI Approved :: MIT License",
+        "Programming Language :: Python :: 3.6",
+        "Programming Language :: Python :: 3.7",
+        "Programming Language :: Python :: 3.8",
+        "Programming Language :: Python :: 3.9",
+        "Programming Language :: Python :: 3.10",
+        "Topic :: Software Development",
+        "Topic :: Software Development :: Internationalization",
+        "Topic :: Text Processing",
+        "Topic :: Utilities",
+    ],
     python_requires=">=3.6",
     packages=find_packages(),
     include_package_data=True,
+    # All data files matched by MANIFEST.in will get included
+    # if they are inside a package directory.
     zip_safe=False,
-    project_urls={
-        "Bug Reports": "{}/issues".format(URL),
-        "Source": "{}/".format(URL),
-    },
 )

@@ -1,46 +1,42 @@
 """A python implementation of the Unicode algorithm for breaking strings
 of text (i.e., code point sequences) into extended grapheme clusters. This
-package supports version 14.0 of the Unicode Standard (released September 14,
-2021). It has been successfully tested against the Unicode test file found at
-www.unicode.org/Public/14.0.0/ucd/auxiliary/GraphemeBreakTest.txt
+package supports version 15.0 of the Unicode standard (September 13, 2022).
+It has been thoroughly tested against the Unicode test file found
+at https://www.unicode.org/Public/15.0.0/ucd/auxiliary/GraphemeBreakTest.txt
 
 To get the version of the Unicode character database currently used:
 
     >>> from pyuegc import UCD_VERSION
     >>> UCD_VERSION
-    '14.0.0'
+    '15.0.0'
 
 For the formal specification, see Unicode Standard Annex #29, "Unicode Text
-Segmentation", at https://unicode.org/reports/tr29/
+Segmentation", at https://www.unicode.org/reports/tr29/tr29-41.html
 """
 
-from sys import version_info as _version_info
-
-if _version_info < (3, 6):
-    raise SystemExit(f"\n{__package__} requires Python >= 3.6 to run.")
+import sys
+if sys.version_info < (3, 6):
+    raise SystemExit(f"\n{__package__.title()} requires Python 3.6 or later.")
+del sys
 
 __all__ = [
     "EGC",
-    "UNICODE_VERSION",
     "UCD_VERSION",
+    "UNICODE_VERSION",
     "__version__",
 ]
 
-# The Unicode Standard used to process the data
-UNICODE_VERSION = "14.0.0"
-
-# The Unicode Character Database
-UCD_VERSION = UNICODE_VERSION
-
-__author__  = "Marc Lodewijck"
-__version__ = "14.0.0"
+# Unicode standard used to process the data
+# Version released on September 13, 2022
+UNICODE_VERSION = UCD_VERSION = "15.0.0"
 
 
-from pyuegc.unicode import UCD_VERSION as _UCD
+from pyuegc import _version
+__version__ = _version.__version__
+del _version
 
-if _UCD != UCD_VERSION:
-    raise SystemExit(
-        f"\nWrong UCD version number in {unicode.__name__}"
-    )
+from pyuegc.unicode import UNICODE_VERSION as _UNICODE
+if _UNICODE != UNICODE_VERSION:
+    raise SystemExit(f"\nWrong Unicode version number in {unicode.__name__}")
 
-from pyuegc.egc import *
+from pyuegc.egc import EGC

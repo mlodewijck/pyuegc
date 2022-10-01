@@ -6,10 +6,9 @@ from pyuegc.unicode import (
 )
 
 _GCB_PROP_VAL.update(dict.fromkeys(_EXT_PICTOGR, "Extended_Pictographic"))
-# print(f"{len(_GCB_PROP_VAL):,}")  # 21,490
 
 # Grapheme cluster break chart
-# www.unicode.org/Public/14.0.0/ucd/auxiliary/GraphemeBreakTest.html
+# https://www.unicode.org/Public/15.0.0/ucd/auxiliary/GraphemeBreakTest.html
 _GCB_CHART = [
     [1, 1, 1, 1, 0, 1, 1, 0, 1, 1, 1, 1, 1, 1, 0],  # Other
     [1, 1, 0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1],  # CR
@@ -65,6 +64,9 @@ def _nobreak_rules():
 _NOBREAK = _nobreak_rules()
 
 
+del _EXT_PICTOGR, _GCB_CHART, _GCB_VALUES
+
+
 def EGC(unistr):
     """Split the original Unicode string *unistr* to a list
     of extended grapheme clusters.
@@ -76,9 +78,8 @@ def EGC(unistr):
 
     # Grapheme breakpoints
     breakpoints = []
-    queue = []
-    prev = None
-    ext_pict_idx = None
+    stack = []
+    prev = ext_pict_idx = None
     ri_count = 0
     for i, curr in enumerate(values):
         if not i:
@@ -87,7 +88,7 @@ def EGC(unistr):
             if prev == "Extended_Pictographic":
                 ext_pict_idx = i - 1
             if curr == "Extended_Pictographic" and prev == "ZWJ":
-                # unicode.org/reports/tr29/#GB11
+                # https://www.unicode.org/reports/tr29/tr29-41.html#GB11
                 # Do not break within emoji modifier sequences
                 # or emoji zwj sequences.
                 if ext_pict_idx is None:
@@ -95,12 +96,12 @@ def EGC(unistr):
                 else:
                     tmp = [
                         1 if x in _EXT_VALUES else 0
-                        for x in queue[ext_pict_idx : i - 1]
+                        for x in stack[ext_pict_idx : i - 1]
                     ]
                     breakpoints.append(0 if tmp and all(tmp) else 1)
             elif curr == "Regional_Indicator" and prev == "Regional_Indicator":
-                # unicode.org/reports/tr29/#GB12
-                # unicode.org/reports/tr29/#GB13
+                # https://www.unicode.org/reports/tr29/tr29-41.html#GB12
+                # https://www.unicode.org/reports/tr29/tr29-41.html#GB13
                 # Do not break within emoji flag sequences. That is, do not
                 # break between regional indicator (RI) symbols if there is
                 # an odd number of RI characters before the break point.
@@ -110,7 +111,7 @@ def EGC(unistr):
                 breakpoints.append(0 if (prev, curr) in _NOBREAK else 1)
 
         prev = curr
-        queue.append(prev)
+        stack.append(prev)
 
     breakpoints.append(1)
 
