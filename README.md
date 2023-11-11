@@ -20,7 +20,7 @@ To get the version of the Unicode character database currently used:
 from pyuegc import EGC
 
 
-def show_output(unistr, egc):
+def _output(unistr, egc):
     return f"""\
 # String: {unistr}
 # Length of string: {len(unistr)}
@@ -30,7 +30,7 @@ def show_output(unistr, egc):
 
 unistr = "Python"
 egc = EGC(unistr)
-print(show_output(unistr, egc))
+print(_output(unistr, egc))
 # String: Python
 # Length of string: 6
 # EGC: ['P', 'y', 't', 'h', 'o', 'n']
@@ -38,7 +38,7 @@ print(show_output(unistr, egc))
 
 unistr = "e\u0301le\u0300ve"
 egc = EGC(unistr)
-print(show_output(unistr, egc))
+print(_output(unistr, egc))
 # String: élève
 # Length of string: 7
 # EGC: ['é', 'l', 'è', 'v', 'e']
@@ -46,7 +46,7 @@ print(show_output(unistr, egc))
 
 unistr = "Z̷̳̎a̸̛ͅl̷̻̇g̵͉̉o̸̰͒"
 egc = EGC(unistr)
-print(show_output(unistr, egc))
+print(_output(unistr, egc))
 # String: Z̷̳̎a̸̛ͅl̷̻̇g̵͉̉o̸̰͒
 # Length of string: 20
 # EGC: ['Z̷̳̎', 'a̸̛ͅ', 'l̷̻̇', 'g̵͉̉', 'o̸̰͒']
@@ -54,7 +54,7 @@ print(show_output(unistr, egc))
 
 unistr = "기운찰만하다"
 egc = EGC(unistr)
-print(show_output(unistr, egc))
+print(_output(unistr, egc))
 # String: 기운찰만하다
 # Length of string: 15
 # EGC: ['기', '운', '찰', '만', '하', '다']
@@ -62,7 +62,7 @@ print(show_output(unistr, egc))
 
 unistr = "পৌষসংক্রান্তির"
 egc = EGC(unistr)
-print(show_output(unistr, egc))
+print(_output(unistr, egc))
 # String: পৌষসংক্রান্তির
 # Length of string: 14
 # EGC: ['পৌ', 'ষ', 'সং', 'ক্রা', 'ন্তি', 'র']
