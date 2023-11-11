@@ -19,6 +19,7 @@ To get the version of the Unicode character database currently used:
 ```python
 from pyuegc import EGC
 
+
 def show_output(unistr, egc):
     return f"""\
 # String: {unistr}
@@ -60,20 +61,17 @@ print(show_output(unistr, egc))
 # Length of EGC: 6
 
 unistr = "পৌষসংক্রান্তির"
+egc = EGC(unistr)
 print(show_output(unistr, egc))
 # String: পৌষসংক্রান্তির
 # Length of string: 14
-# EGC: ['기', '운', '찰', '만', '하', '다']
+# EGC: ['পৌ', 'ষ', 'সং', 'ক্রা', 'ন্তি', 'র']
 # Length of EGC: 6
 
 
 unistr = "ai\u0302ne\u0301e"  # aînée
-a = "".join(reversed(unistr))
-b = "".join(reversed(EGC(unistr)))
-print(f"# Reversed string:\n#   {a}", end=" -> ")
-print("wrong (diacritics are messed up)")
-print(f"# Reversed EGC:\n#   {b}", end=" -> ")
-print("right (regardless of the Unicode normalization form)")
+print(f"# Reversed string:\n#   {''.join(reversed(unistr))}")
+print(f"# Reversed EGC:   \n#   {''.join(reversed(EGC(unistr)))}")
 # Reversed string:
 #   éen̂ia -> wrong (diacritics are messed up)
 # Reversed EGC:
