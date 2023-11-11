@@ -1,12 +1,11 @@
 """Unicode conformance testing.
 
-- https://www.unicode.org/Public/15.0.0/ucd/auxiliary/GraphemeBreakTest.html
-- https://www.unicode.org/Public/15.0.0/ucd/auxiliary/GraphemeBreakTest.txt
-- https://www.unicode.org/reports/tr29/tr29-41.html
+- https://www.unicode.org/Public/15.1.0/ucd/auxiliary/GraphemeBreakTest.html
+- https://www.unicode.org/Public/15.1.0/ucd/auxiliary/GraphemeBreakTest.txt
+- https://www.unicode.org/reports/tr29/tr29-43.html
 """
 
 import pathlib
-import time
 import unittest
 
 from pyuegc import EGC, UNICODE_VERSION
@@ -18,7 +17,6 @@ UNICODE_FILE = "GraphemeBreakTest.txt"
 def parse_file():
     records = []
 
-#   path = pathlib.Path(__file__).parent / "data" / UNICODE_FILE
     path = pathlib.Path.cwd() / "data" / UNICODE_FILE
     with path.open(encoding="utf-8") as f:
         assert UNICODE_VERSION in f.readline(), "Wrong Unicode version number."
@@ -30,26 +28,30 @@ def parse_file():
             if not pattern:
                 continue
 
-            cp = []
-            breakpoints = []
-            cp_count = 0
+            positions = []
+            chars = []
+
+            index = 0
             for x in pattern.split():
                 # ÷ wherever there is a break opportunity
                 # × wherever there is not
                 if x == "÷":
-                    breakpoints.append(cp_count)
-                elif x == "×":
-                    pass
-                else:
-                    cp.append(chr(int(x, 16)))
-                    cp_count += 1
+                    positions.append(index)
+                elif x != "×":
+                    chars.append(chr(int(x, 16)))
+                    index += 1
 
-            string = "".join(cp)
-            graphemes = [
-                string[i:j]
-                for i, j in zip(breakpoints, breakpoints[1:])
-            ]
-            records.append([num, string, graphemes])
+            string = "".join(chars)
+
+            if len(positions) == 2:
+                egc = [string]
+            else:
+                egc = [
+                    string[i:j]
+                    for i, j in zip(positions, positions[1:])
+                ]
+
+            records.append((num, string, egc))
 
     return records
 
@@ -65,10 +67,9 @@ class TestExtendedGraphemeClusters(unittest.TestCase):
 
 
 def generator():
-    for record in parse_file():
-        testname = f"test_line_{record[0]:03d}"
-        observed = EGC(record[1])
-        expected = record[2]
+    for num, string, expected in parse_file():
+        testname = f"test_line_{num:04d}"
+        observed = EGC(string)
         testfunc = make_function(observed, expected)
         setattr(TestExtendedGraphemeClusters, testname, testfunc)
 
