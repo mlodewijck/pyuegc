@@ -19,23 +19,65 @@ To get the version of the Unicode character database currently used:
 ```python
 from pyuegc import EGC
 
-for s in ["e\u0301le\u0300ve", "Z̷̳̎a̸̛ͅl̷̻̇g̵͉̉o̸̰͒", "기운찰만하다"]:
-    egc = EGC(s)
-    print(f"{len(s):>2}, {len(egc)}: {egc}")
+def show_output(unistr, egc):
+    return f"""\
+# String: {unistr}
+# Length of string: {len(unistr)}
+# EGC: {egc}
+# Length of EGC: {len(egc)}
+"""
 
-# Output
-#  7, 5: ['é', 'l', 'è', 'v', 'e']
-# 20, 5: ['Z̷̳̎', 'a̸̛ͅ', 'l̷̻̇', 'g̵͉̉', 'o̸̰͒']
-# 15, 6: ['기', '운', '찰', '만', '하', '다']
+unistr = "Python"
+egc = EGC(unistr)
+print(show_output(unistr, egc))
+# String: Python
+# Length of string: 6
+# EGC: ['P', 'y', 't', 'h', 'o', 'n']
+# Length of EGC: 6
+
+unistr = "e\u0301le\u0300ve"
+egc = EGC(unistr)
+print(show_output(unistr, egc))
+# String: élève
+# Length of string: 7
+# EGC: ['é', 'l', 'è', 'v', 'e']
+# Length of EGC: 5
+
+unistr = "Z̷̳̎a̸̛ͅl̷̻̇g̵͉̉o̸̰͒"
+egc = EGC(unistr)
+print(show_output(unistr, egc))
+# String: Z̷̳̎a̸̛ͅl̷̻̇g̵͉̉o̸̰͒
+# Length of string: 20
+# EGC: ['Z̷̳̎', 'a̸̛ͅ', 'l̷̻̇', 'g̵͉̉', 'o̸̰͒']
+# Length of EGC: 5
+
+unistr = "기운찰만하다"
+egc = EGC(unistr)
+print(show_output(unistr, egc))
+# String: 기운찰만하다
+# Length of string: 15
+# EGC: ['기', '운', '찰', '만', '하', '다']
+# Length of EGC: 6
+
+unistr = "পৌষসংক্রান্তির"
+print(show_output(unistr, egc))
+# String: পৌষসংক্রান্তির
+# Length of string: 14
+# EGC: ['기', '운', '찰', '만', '하', '다']
+# Length of EGC: 6
 
 
-s = "ai\u0302ne\u0301e"  # aînée
-print("".join(reversed(s)))
-print("".join(reversed(EGC(s))))
-
-# Output
-# éen̂ia -> wrong (diacritics are messed up)
-# eénîa -> right (regardless of the Unicode normalization form)
+unistr = "ai\u0302ne\u0301e"  # aînée
+a = "".join(reversed(unistr))
+b = "".join(reversed(EGC(unistr)))
+print(f"# Reversed string:\n#   {a}", end=" -> ")
+print("wrong (diacritics are messed up)")
+print(f"# Reversed EGC:\n#   {b}", end=" -> ")
+print("right (regardless of the Unicode normalization form)")
+# Reversed string:
+#   éen̂ia -> wrong (diacritics are messed up)
+# Reversed EGC:
+#   eénîa -> right (regardless of the Unicode normalization form)
 ```
 
 ### Related resources
