@@ -1,22 +1,26 @@
-"""A python implementation of the Unicode algorithm for breaking strings
-of text (i.e., code point sequences) into extended grapheme clusters. This
-package supports version 15.1 of the Unicode standard (September 2023).
-It has been thoroughly tested against the Unicode test file found
-at https://www.unicode.org/Public/15.1.0/ucd/auxiliary/GraphemeBreakTest.txt
+"""Utility for listing Unicode default extended grapheme clusters.
 
-To get the version of the Unicode character database currently used:
+This Python library implements the Unicode text segmentation algorithm,
+accurately segmenting Unicode text (code point sequences) into a list
+of their constituent extended grapheme clusters. It adheres to the Unicode
+standard version 16.0 (released in September 2024) and has been rigorously
+tested using the official Unicode test file available at
+https://www.unicode.org/Public/16.0.0/ucd/auxiliary/GraphemeBreakTest.txt.
 
-    >>> from pyuegc import UCD_VERSION
-    >>> UCD_VERSION
-    '15.1.0'
+For the formal specification of Unicode text segmentation algorithms,
+refer to Unicode Standard Annex #29, "Unicode Text Segmentation,"
+at https://www.unicode.org/reports/tr29/tr29-45.html.
 
-For the formal specification, see Unicode Standard Annex #29, "Unicode Text
-Segmentation", at https://www.unicode.org/reports/tr29/tr29-43.html
+Copyright (c) 2021-2024, Marc Lodewijck
+All rights reserved.
+
+This software is distributed under the MIT license.
 """
 
 import sys
+
 if sys.version_info < (3, 6):
-    raise SystemExit(f"\n{__package__.title()} requires Python 3.6 or later.")
+    raise SystemExit(f"\n{__package__} requires Python 3.6 or later.")
 del sys
 
 __all__ = [
@@ -27,16 +31,19 @@ __all__ = [
 ]
 
 # Unicode standard used to process the data
-# Version released in September 2023
-UNICODE_VERSION = UCD_VERSION = "15.1.0"
+UNICODE_VERSION = UCD_VERSION = "16.0.0"
 
 
 from pyuegc import _version
 __version__ = _version.__version__
 del _version
 
-from pyuegc.unicode import UNICODE_VERSION as _UNICODE
-if _UNICODE != UNICODE_VERSION:
-    raise SystemExit(f"\nWrong Unicode version number in {unicode.__name__}")
+from pyuegc._unicode import _UNICODE_VERSION
+if _UNICODE_VERSION != UNICODE_VERSION:
+    raise SystemExit(
+        f"Unicode version mismatch in {_unicode.__name__} "
+        f"(expected {UNICODE_VERSION}, found {_UNICODE_VERSION})."
+    )
+del _UNICODE_VERSION
 
 from pyuegc.egc import EGC

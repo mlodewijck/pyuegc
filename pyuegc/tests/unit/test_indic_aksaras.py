@@ -1,13 +1,14 @@
 """Unit tests for pyuegc."""
 
-import pathlib
+import os
 import unittest
 
 from pyuegc import EGC, UNICODE_VERSION as _UNICODE_VERSION
 
-UNICODE_VERSION = "15.1.0"
+UNICODE_VERSION = "16.0.0"
 assert UNICODE_VERSION == _UNICODE_VERSION, "Wrong Unicode version number."
 
+# Test data available at https://www.unicode.org/cldr/cldr-aux/production/common/testData/segmentation/graphemeCluster/
 FILES = (
     "TestSegmenter-Bengali.txt",
     "TestSegmenter-Devanagari.txt",
@@ -21,12 +22,16 @@ FILES = (
 def parse_file(filename):
     records = []
 
-    path = pathlib.Path.cwd() / "data" / filename
-    with path.open(encoding="utf-8-sig") as f:
+    data_dir = os.path.join("pyuegc", "tests", "unit", "data")
+    path = os.path.join(data_dir, filename)
+
+    with open(path, encoding="utf-8-sig") as f:
         for num, line in enumerate(f, 1):
             line = line.replace(" ", "").strip()
+
             if not line or line.startswith("#"):
                 continue
+
             string, _, expected = line.partition(";")
             expected = expected.strip("÷").split("÷")
             records.append((num, string, expected))

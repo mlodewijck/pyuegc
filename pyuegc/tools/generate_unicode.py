@@ -1,21 +1,21 @@
 # This script generates the pyuegc.unicode module.
 #
 # Input files:
-#     https://www.unicode.org/Public/15.1.0/ucd/auxiliary/GraphemeBreakProperty.txt
-#     https://www.unicode.org/Public/15.1.0/ucd/emoji/emoji-data.txt
-#     https://www.unicode.org/Public/15.1.0/ucd/IndicSyllabicCategory.txt
-#     https://www.unicode.org/Public/15.1.0/ucd/UnicodeData.txt
+#     https://www.unicode.org/Public/16.0.0/ucd/auxiliary/GraphemeBreakProperty.txt
+#     https://www.unicode.org/Public/16.0.0/ucd/emoji/emoji-data.txt
+#     https://www.unicode.org/Public/16.0.0/ucd/IndicSyllabicCategory.txt
+#     https://www.unicode.org/Public/16.0.0/ucd/UnicodeData.txt
 #
 # Output file:
 #     tools/generate_unicode/unicode.py
 #
-# The output file must be copied to the *pyuegc* directory.
+# The output file must be copied to the `pyuegc` directory.
 
 import pathlib
 import urllib.error
 import urllib.request
 
-UNICODE_VERSION = "15.1.0"
+UNICODE_VERSION = "16.0.0"
 SCRIPT_PATH = "/".join(pathlib.Path(__file__).parts[-3:])
 
 # Files from the Unicode character database (UCD)
@@ -27,6 +27,7 @@ UNICODE_UDATA = "UnicodeData.txt"
 
 def read_remote(filename):
     url = f"https://www.unicode.org/Public/{UNICODE_VERSION}/ucd/"
+
     try:
         print("\n.. Fetching URL...")
         response = urllib.request.urlopen(f"{url}{filename}")
@@ -49,6 +50,7 @@ def codepoint_range(data, separator=".."):
         start, end = data.split(separator)
     else:
         start = end = data
+
     return range(int(start, 16), int(end, 16) + 1)
 
 
@@ -72,15 +74,20 @@ def main():
     gcb_prop_list = []
     extend_list = []  # needed later
     zwj_list = []     # needed later
+
     for item in lines:
         item = item.rstrip()
+
         if item.startswith("#") or not item:
             continue
+
         data = item.split("#")[0].split(";")
         prop = data[1].strip()
+
         for code in codepoint_range(data[0].strip()):
             code = f"{code:04X}"
             gcb_prop_list.append(f'    0x{code:0>5}: "{prop}",')
+
             if prop == "Extend":
                 extend_list.append(code)
             elif prop == "ZWJ":
@@ -100,15 +107,19 @@ def main():
     # \p{Extended_Pictographic}
     for item in lines:
         item = item.rstrip()
+
         if item.startswith("# Used with Emoji Version"):
             # Check file version
             assert UNICODE_VERSION[:-2] in item, \
                 "Wrong Unicode version number."
         elif item.startswith('#') or not item:
             continue
+
         if not "Extended_Pictographic" in item:
             continue
+
         item = item.split(";")[0].rstrip()
+
         if ".." in item:
             start, end = item.split("..")
             ext_pict_list.append(
@@ -137,15 +148,18 @@ def main():
     # ]
     start = lines.index("# Indic_Syllabic_Category=Consonant")
     stop  = lines.index("# Indic_Syllabic_Category=Consonant_Dead")
+
     for line in lines[start:stop]:
         line = line.rstrip()
+
         if line and not line.startswith('#'):
             if ("BENGALI" in line
                     or "DEVANAGARI" in line
                     or "GUJARATI" in line
                     or "MALAYALAM" in line
                     or "ORIYA" in line
-                    or "TELUGU" in line):
+                    or "TELUGU" in line
+            ):
                 code, rest = line.split(";")
                 code = code.rstrip()
                 if ".." in code:
@@ -165,15 +179,18 @@ def main():
     # ]
     start = lines.index("# Indic_Syllabic_Category=Virama")
     stop  = lines.index("# Indic_Syllabic_Category=Pure_Killer")
+
     for line in lines[start:stop]:
         line = line.rstrip()
+
         if line and not line.startswith('#'):
             if ("BENGALI" in line
                     or "DEVANAGARI" in line
                     or "GUJARATI" in line
                     or "MALAYALAM" in line
                     or "ORIYA" in line
-                    or "TELUGU" in line):
+                    or "TELUGU" in line
+            ):
                 code, rest = line.split(";")
                 code = code.rstrip()
                 if ".." in code:
@@ -198,11 +215,13 @@ def main():
     ext_ccc_zwj_list = []
     # [[Extend-\p{ccc=0}] $ZWJ]
     extend = set(extend_list)
+
     for item in lines:
         items = item.split(";", 4)
         code = items[0]
-        if code in extend and items[3] != '0':
+        if code in extend and items[3] != "0":
             ext_ccc_zwj_list.append(f"    0x{code:0>5},")
+
     for code in zwj_list:
         ext_ccc_zwj_list.append(f"    0x{code:0>5},")
 
@@ -213,56 +232,43 @@ def main():
     conjunct_linkers = "\n".join(conjunct_linkers_list)
     ext_ccc_zwj = "\n".join(ext_ccc_zwj_list)
 
-    # print("gcb_prop_list           ", len(set(gcb_prop_list)))
-    # print("ext_pict_list           ", len(set(ext_pict_list)))
-    # print("linking_consonants_list ", len(set(linking_consonants_list)))
-    # print("conjunct_linkers_list   ", len(set(conjunct_linkers_list)))
-    # print("ext_ccc_zwj_list        ", len(set(ext_ccc_zwj_list)))
-    #
-    # gcb_prop_list             18,003
-    # ext_pict_list              3,537
-    # linking_consonants_list      240
-    # conjunct_linkers_list          6
-    # ext_ccc_zwj_list             905
-
-    with open(cwd / "unicode.py", "w", encoding="utf-8", newline="\n") as f:
+    with open(cwd / "_unicode.py", "w", encoding="utf-8", newline="\n") as f:
         f.write(f'''\
 """Data derived from the Unicode character database (UCD).
 
 This file was generated from {SCRIPT_PATH}
 """
 
-UNICODE_VERSION = "{UNICODE_VERSION}"
+_UNICODE_VERSION = "{UNICODE_VERSION}"
 
-# Grapheme cluster break property values
-# All code points not explicitly listed for Grapheme_Cluster_Break
-# have the value "Other"
-_GCB_PROP = {{
+# Mapping of Unicode code points to their corresponding grapheme cluster
+# break property values (any code point not explicitly listed here defaults
+# to "Other")
+_PROP_DICT = {{
 {gcb_prop}
 }}
 
-# Extended pictographic characters
-# All the code points that have the Extended_Pictographic property
+# List of Unicode code points that have the Extended_Pictographic property
 _EXT_PICT = [
 {ext_pict}
 ]
 
-# [\p{{Gujr}}\p{{sc=Telu}}\p{{sc=Mlym}}\p{{sc=Orya}}\p{{sc=Beng}}\p{{sc=Deva}}
-# & \p{{Indic_Syllabic_Category=Consonant}}]
-_LINKING_CONSONANTS = "".join(chr(x) for x in [
+# [\\p{{Gujr}}\\p{{sc=Telu}}\\p{{sc=Mlym}}\\p{{sc=Orya}}\\p{{sc=Beng}}\\p{{sc=Deva}}
+# & \\p{{Indic_Syllabic_Category=Consonant}}]
+_LINKING_CONSONANTS = "".join(map(chr, [
 {linking_consonants}
-])
+]))
 
-# [\p{{Gujr}}\p{{sc=Telu}}\p{{sc=Mlym}}\p{{sc=Orya}}\p{{sc=Beng}}\p{{sc=Deva}}
-# & \p{{Indic_Syllabic_Category=Virama}}]
-_CONJUNCT_LINKERS = "".join(chr(x) for x in [
+# [\\p{{Gujr}}\\p{{sc=Telu}}\\p{{sc=Mlym}}\\p{{sc=Orya}}\\p{{sc=Beng}}\\p{{sc=Deva}}
+# & \\p{{Indic_Syllabic_Category=Virama}}]
+_CONJUNCT_LINKERS = "".join(map(chr, [
 {conjunct_linkers}
-])
+]))
 
-# [[Extend-\p{{ccc=0}}] $ZWJ]
-_EXT_CCC_ZWJ = "".join(chr(x) for x in [
+# [[Extend-\\p{{ccc=0}}] $ZWJ]
+_EXT_CCC_ZWJ = "".join(map(chr, [
 {ext_ccc_zwj}
-])
+]))
 ''')
 
 

@@ -1,11 +1,12 @@
 """Unicode conformance testing.
 
-- https://www.unicode.org/Public/15.1.0/ucd/auxiliary/GraphemeBreakTest.html
-- https://www.unicode.org/Public/15.1.0/ucd/auxiliary/GraphemeBreakTest.txt
-- https://www.unicode.org/reports/tr29/tr29-43.html
+Information about conformance testing for Unicode extended grapheme clusters:
+    - https://www.unicode.org/Public/16.0.0/ucd/auxiliary/GraphemeBreakTest.html
+    - https://www.unicode.org/Public/16.0.0/ucd/auxiliary/GraphemeBreakTest.txt
+    - https://www.unicode.org/reports/tr29/tr29-45.html
 """
 
-import pathlib
+import os
 import unittest
 
 from pyuegc import EGC, UNICODE_VERSION
@@ -17,8 +18,10 @@ UNICODE_FILE = "GraphemeBreakTest.txt"
 def parse_file():
     records = []
 
-    path = pathlib.Path.cwd() / "data" / UNICODE_FILE
-    with path.open(encoding="utf-8") as f:
+    data_dir = os.path.join("pyuegc", "tests", "unicode_conformance", "data")
+    path = os.path.join(data_dir, UNICODE_FILE)
+
+    with open(path, encoding="utf-8") as f:
         assert UNICODE_VERSION in f.readline(), "Wrong Unicode version number."
         f.seek(0)
 
