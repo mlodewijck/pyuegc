@@ -1,4 +1,5 @@
 prune pyuegc/tests
-global-exclude *.pyc __pycache__
-exclude tox.ini
+global-exclude __pycache__ *.py[cod]
+include CHANGELOG.md
+include LICENSE
 include UNICODE-LICENSE

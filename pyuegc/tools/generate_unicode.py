@@ -1,13 +1,12 @@
-# This script generates the pyuegc.unicode module.
+# This script generates the pyuegc._unicode module.
 #
 # Input files:
 #     https://www.unicode.org/Public/16.0.0/ucd/auxiliary/GraphemeBreakProperty.txt
 #     https://www.unicode.org/Public/16.0.0/ucd/emoji/emoji-data.txt
-#     https://www.unicode.org/Public/16.0.0/ucd/IndicSyllabicCategory.txt
-#     https://www.unicode.org/Public/16.0.0/ucd/UnicodeData.txt
+#     https://www.unicode.org/Public/16.0.0/ucd/DerivedCoreProperties.txt
 #
 # Output file:
-#     tools/generate_unicode/unicode.py
+#     tools/generate_unicode/_unicode.py
 #
 # The output file must be copied to the `pyuegc` directory.
 
@@ -19,218 +18,182 @@ UNICODE_VERSION = "16.0.0"
 SCRIPT_PATH = "/".join(pathlib.Path(__file__).parts[-3:])
 
 # Files from the Unicode character database (UCD)
-UNICODE_EMOJI = "emoji-data.txt"
-UNICODE_GBP   = "GraphemeBreakProperty.txt"
-UNICODE_INDIC = "IndicSyllabicCategory.txt"
-UNICODE_UDATA = "UnicodeData.txt"
+DERIVED_CORE_PROPERTIES = "DerivedCoreProperties.txt"
+EMOJI_DATA = "emoji-data.txt"
+GRAPHEME_BREAK_PROPRETY = "GraphemeBreakProperty.txt"
 
 
 def read_remote(filename):
-    url = f"https://www.unicode.org/Public/{UNICODE_VERSION}/ucd/"
+    base_url = f"https://www.unicode.org/Public/{UNICODE_VERSION}/ucd/"
+    url = f"{base_url}{filename}"
 
     try:
         print("\n.. Fetching URL...")
-        response = urllib.request.urlopen(f"{url}{filename}")
-        # print(response.__dict__)
+        with urllib.request.urlopen(url) as response:
+            print(f".. Extracting data from {filename}")
+            return response.read().decode("utf-8").splitlines()
     except urllib.error.HTTPError as e:
         raise Exception(
-            f"The server could not fulfill the request. Error code: {e.code}"
+            f"HTTPError: Could not fulfill the request. Error code: {e.code}"
         )
     except urllib.error.URLError as e:
         raise Exception(
-            f"We failed to reach a server.\nReason:\n{e.reason}"
+            f"URLError: Failed to reach the server. Reason: {e.reason}"
         )
 
-    print(f".. Extracting data from {filename}")
-    return response.read().decode("utf-8").splitlines()
 
+def parse_lines(lines, target_property=None):
+    results = []
+    property_data = {}
 
-def codepoint_range(data, separator=".."):
-    if separator in data:
-        start, end = data.split(separator)
-    else:
-        start = end = data
+    code_points = set()
+    total_points_expected = None
 
-    return range(int(start, 16), int(end, 16) + 1)
+    wanted = ("# Total code points:", "# Total elements:")
+
+    for line in lines:
+        if not line or (line.startswith("#") and not line.startswith(wanted)):
+            continue
+
+        if line.startswith(wanted):
+            total_points_expected = int(line.split(":")[1].strip())
+
+            if curr_prop:
+                property_data[curr_prop] = {
+                    "code_points": code_points,
+                    "total_expected": total_points_expected,
+                    "total_actual": len(code_points),
+                    "match": len(code_points) == total_points_expected,
+                }
+
+            curr_prop = None
+            code_points = set()
+            total_points_expected = None
+
+        else:
+            parts = line.split(";", 1)
+            data = parts[0].strip()
+            curr_prop = parts[1].split("#")[0].strip()
+
+            if target_property and curr_prop != target_property:
+                continue
+
+            if ".." in data:
+                start, end = [int(cp, 16) for cp in data.split("..")]
+                code_points.update([*range(start, end + 1)])
+
+                if target_property is None:
+                    for code in range(start, end + 1):
+                        results.append(f'    0x{code:05X}: "{curr_prop}",')
+                else:
+                    results.append(
+                        f"    *range(0x{start:05X}, 0x{end:05X} + 1),"
+                    )
+
+            else:
+                code_points.add(data)
+
+                if target_property is None:
+                    results.append(f'    0x{data:0>5}: "{curr_prop}",')
+                else:
+                    indent = \
+                        " " * (4 if target_property == "InCB; Linker" else 11)
+                    results.append(f"{indent}0x{data:0>5},")
+
+    for prop, data in property_data.items():
+        if target_property and prop != target_property:
+            continue
+        print()
+        print(f"Property: {prop}")
+        print(f"  Expected:  {data['total_expected']:>6,} code points")
+        print(f"  Collected: {data['total_actual']:>6,} code points")
+        assert data["match"]
+
+    return results
 
 
 def main():
     # Current working directory
     cwd = pathlib.Path.cwd()
 
+
     #
     # Unicode file: GraphemeBreakProperty.txt
     #
 
     try:
-        lines = (cwd / UNICODE_GBP).read_text(encoding="utf-8").splitlines()
+        lines = (cwd / GRAPHEME_BREAK_PROPRETY).read_text(encoding="utf-8").splitlines()
     except FileNotFoundError:
-        lines = read_remote(f"auxiliary/{UNICODE_GBP}")
+        lines = read_remote(f"auxiliary/{GRAPHEME_BREAK_PROPRETY}")
         print(".. Done.")
 
-    # Check file version
-    assert UNICODE_VERSION in lines[0], "Wrong Unicode version number."
+    assert UNICODE_VERSION in lines[0], "Unicode version mismatch"
 
-    gcb_prop_list = []
-    extend_list = []  # needed later
-    zwj_list = []     # needed later
+    # Grapheme_Cluster_Break property values
+    gcb_prop_values = parse_lines(lines)
 
-    for item in lines:
-        item = item.rstrip()
-
-        if item.startswith("#") or not item:
-            continue
-
-        data = item.split("#")[0].split(";")
-        prop = data[1].strip()
-
-        for code in codepoint_range(data[0].strip()):
-            code = f"{code:04X}"
-            gcb_prop_list.append(f'    0x{code:0>5}: "{prop}",')
-
-            if prop == "Extend":
-                extend_list.append(code)
-            elif prop == "ZWJ":
-                zwj_list.append(code)
 
     #
     # Unicode file: emoji-data.txt
     #
 
     try:
-        lines = (cwd / UNICODE_EMOJI).read_text(encoding="utf-8").splitlines()
+        lines = (cwd / EMOJI_DATA).read_text(encoding="utf-8").splitlines()
     except FileNotFoundError:
-        lines = read_remote(f"emoji/{UNICODE_EMOJI}")
+        lines = read_remote(f"emoji/{EMOJI_DATA}")
         print(".. Done.")
 
-    ext_pict_list = []
-    # \p{Extended_Pictographic}
-    for item in lines:
-        item = item.rstrip()
+    # [\p{Extended_Pictographic}]
+    ExtendedPictographic = \
+        parse_lines(lines, target_property="Extended_Pictographic")
 
-        if item.startswith("# Used with Emoji Version"):
-            # Check file version
-            assert UNICODE_VERSION[:-2] in item, \
-                "Wrong Unicode version number."
-        elif item.startswith('#') or not item:
-            continue
-
-        if not "Extended_Pictographic" in item:
-            continue
-
-        item = item.split(";")[0].rstrip()
-
-        if ".." in item:
-            start, end = item.split("..")
-            ext_pict_list.append(
-                f'    *range(0x{start:0>5}, 0x{end:0>5} + 1),'
-            )
-        else:
-            ext_pict_list.append(f"           0x{item:0>5},")
 
     #
-    # Unicode file: IndicSyllabicCategory.txt
+    # Unicode file: DerivedCoreProperties.txt
     #
+
+    # Indic sequences
+    #   InCBLinker    = [\p{InCB=Linker}]
+    #   InCBConsonant = [\p{InCB=Consonant}]
+    #   InCBExtend    = [\p{InCB=Extend}]
 
     try:
-        lines = (cwd / UNICODE_INDIC).read_text(encoding="utf-8").splitlines()
+        lines = (cwd / DERIVED_CORE_PROPERTIES).read_text(encoding="utf-8").splitlines()
     except FileNotFoundError:
-        lines = read_remote(UNICODE_INDIC)
+        lines = read_remote(DERIVED_CORE_PROPERTIES)
         print(".. Done.")
 
-    # Check file version
-    assert UNICODE_VERSION in lines[0], "Wrong Unicode version number."
+    assert UNICODE_VERSION in lines[0], "Unicode version mismatch"
 
-    linking_consonants_list = []
-    # [
-    # \p{Gujr}\p{sc=Telu}\p{sc=Mlym}\p{sc=Orya}\p{sc=Beng}\p{sc=Deva}
-    # & \p{Indic_Syllabic_Category=Consonant}
-    # ]
-    start = lines.index("# Indic_Syllabic_Category=Consonant")
-    stop  = lines.index("# Indic_Syllabic_Category=Consonant_Dead")
+    # [\p{InCB=Consonant}]
+    # https://www.unicode.org/reports/tr44/tr44-34.html#Indic_Conjunct_Break
+    #   InCB = Consonant iff C in [S &\p{Indic_Syllabic_Category=Consonant}]
+    #   S = [\p{sc=Beng}\p{sc=Deva}\p{sc=Gujr}\p{sc=Mlym}\p{sc=Orya}\p{sc=Telu}]
+    InCBConsonant = parse_lines(lines, target_property="InCB; Consonant")
 
-    for line in lines[start:stop]:
-        line = line.rstrip()
+    # [\p{InCB=Linker}]
+    # https://www.unicode.org/reports/tr44/tr44-34.html#Indic_Conjunct_Break
+    #   InCB = Linker iff C in [S &\p{Indic_Syllabic_Category=Virama}]
+    #   S = [\p{sc=Beng}\p{sc=Deva}\p{sc=Gujr}\p{sc=Mlym}\p{sc=Orya}\p{sc=Telu}]
+    InCBLinker = parse_lines(lines, target_property="InCB; Linker")
 
-        if line and not line.startswith('#'):
-            if ("BENGALI" in line
-                    or "DEVANAGARI" in line
-                    or "GUJARATI" in line
-                    or "MALAYALAM" in line
-                    or "ORIYA" in line
-                    or "TELUGU" in line
-            ):
-                code, rest = line.split(";")
-                code = code.rstrip()
-                if ".." in code:
-                    start, end = code.split("..")
-                    linking_consonants_list.append(
-                        f"    *range(0x{start:0>5}, 0x{end:0>5} + 1),"
-                        f"  # {rest[22:]}")
-                else:
-                    linking_consonants_list.append(
-                        f"           0x{code:0>5},  {12 * ' '}"
-                        f"  # {rest[22:]}")
-
-    conjunct_linkers_list = []
-    # [
-    # \p{Gujr}\p{sc=Telu}\p{sc=Mlym}\p{sc=Orya}\p{sc=Beng}\p{sc=Deva}
-    # & \p{Indic_Syllabic_Category=Virama}
-    # ]
-    start = lines.index("# Indic_Syllabic_Category=Virama")
-    stop  = lines.index("# Indic_Syllabic_Category=Pure_Killer")
-
-    for line in lines[start:stop]:
-        line = line.rstrip()
-
-        if line and not line.startswith('#'):
-            if ("BENGALI" in line
-                    or "DEVANAGARI" in line
-                    or "GUJARATI" in line
-                    or "MALAYALAM" in line
-                    or "ORIYA" in line
-                    or "TELUGU" in line
-            ):
-                code, rest = line.split(";")
-                code = code.rstrip()
-                if ".." in code:
-                    start, end = code.split("..")
-                    conjunct_linkers_list.append(
-                        f"    *range(0x{start:0>5}, 0x{end:0>5} + 1),"
-                        f"  # {rest[19:]}")
-                else:
-                    conjunct_linkers_list.append(
-                        f"    0x{code:0>5},  # {rest[19:]}")
-
-    #
-    # Unicode file: UnicodeData.txt
-    #
-
-    try:
-        lines = (cwd / UNICODE_UDATA).read_text(encoding="utf-8").splitlines()
-    except FileNotFoundError:
-        lines = read_remote(UNICODE_UDATA)
-        print(".. Done.")
-
-    ext_ccc_zwj_list = []
-    # [[Extend-\p{ccc=0}] $ZWJ]
-    extend = set(extend_list)
-
-    for item in lines:
-        items = item.split(";", 4)
-        code = items[0]
-        if code in extend and items[3] != "0":
-            ext_ccc_zwj_list.append(f"    0x{code:0>5},")
-
-    for code in zwj_list:
-        ext_ccc_zwj_list.append(f"    0x{code:0>5},")
+    # [\p{InCB=Extend}]
+    # https://www.unicode.org/reports/tr44/tr44-34.html#Indic_Conjunct_Break
+    #   InCB = Extend iff C in [
+    #       \p{gcb=Extend}
+    #       \p{gcb=ZWJ}
+    #       -\p{InCB=Linker}
+    #       -\p{InCB=Consonant}
+    #       -[\u200C]
+    #   ]
+    InCBExtend = parse_lines(lines, target_property="InCB; Extend")
 
 
-    gcb_prop = "\n".join(gcb_prop_list)
-    ext_pict = "\n".join(ext_pict_list)
-    linking_consonants = "\n".join(linking_consonants_list)
-    conjunct_linkers = "\n".join(conjunct_linkers_list)
-    ext_ccc_zwj = "\n".join(ext_ccc_zwj_list)
+    PROP_DICT = "\n".join(gcb_prop_values)
+    EXT_PICTOGR = "\n".join(ExtendedPictographic)
+    INCB_CONSONANT = "\n".join(InCBConsonant)
+    INCB_LINKER = "\n".join(InCBLinker)
+    INCB_EXTEND = "\n".join(InCBExtend)
 
     with open(cwd / "_unicode.py", "w", encoding="utf-8", newline="\n") as f:
         f.write(f'''\
@@ -242,32 +205,34 @@ This file was generated from {SCRIPT_PATH}
 _UNICODE_VERSION = "{UNICODE_VERSION}"
 
 # Mapping of Unicode code points to their corresponding grapheme cluster
-# break property values (any code point not explicitly listed here defaults
-# to "Other")
+# break property values (any code point not listed here defaults to "Other")
+# Source: GraphemeBreakProperty.txt
 _PROP_DICT = {{
-{gcb_prop}
+{PROP_DICT}
 }}
 
-# List of Unicode code points that have the Extended_Pictographic property
-_EXT_PICT = [
-{ext_pict}
+# [\\p{{Extended_Pictographic}}]
+# Source: emoji-data.txt
+_EXT_PICTOGR = [
+{EXT_PICTOGR}
 ]
 
-# [\\p{{Gujr}}\\p{{sc=Telu}}\\p{{sc=Mlym}}\\p{{sc=Orya}}\\p{{sc=Beng}}\\p{{sc=Deva}}
-# & \\p{{Indic_Syllabic_Category=Consonant}}]
-_LINKING_CONSONANTS = "".join(map(chr, [
-{linking_consonants}
+# [\\p{{InCB=Consonant}}]
+# Source: DerivedCoreProperties.txt
+_INCB_CONSONANT = "".join(map(chr, [
+{INCB_CONSONANT}
 ]))
 
-# [\\p{{Gujr}}\\p{{sc=Telu}}\\p{{sc=Mlym}}\\p{{sc=Orya}}\\p{{sc=Beng}}\\p{{sc=Deva}}
-# & \\p{{Indic_Syllabic_Category=Virama}}]
-_CONJUNCT_LINKERS = "".join(map(chr, [
-{conjunct_linkers}
+# [\\p{{InCB=Linker}}]
+# Source: DerivedCoreProperties.txt
+_INCB_LINKER = "".join(map(chr, [
+{INCB_LINKER}
 ]))
 
-# [[Extend-\\p{{ccc=0}}] $ZWJ]
-_EXT_CCC_ZWJ = "".join(map(chr, [
-{ext_ccc_zwj}
+# [\\p{{InCB=Extend}}]
+# Source: DerivedCoreProperties.txt
+_INCB_EXTEND = "".join(map(chr, [
+{INCB_EXTEND}
 ]))
 ''')
 

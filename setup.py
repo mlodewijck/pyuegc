@@ -42,26 +42,24 @@ setup(
         "graphemes",
         "segmentation",
     ],
-    # Trove classifiers
     classifiers=[
         "Intended Audience :: Developers",
         "License :: OSI Approved :: MIT License",
-        "Programming Language :: Python :: 3.6",
-        "Programming Language :: Python :: 3.7",
         "Programming Language :: Python :: 3.8",
         "Programming Language :: Python :: 3.9",
         "Programming Language :: Python :: 3.10",
         "Programming Language :: Python :: 3.11",
         "Programming Language :: Python :: 3.12",
+        "Programming Language :: Python :: 3.13",
         "Topic :: Software Development",
         "Topic :: Software Development :: Internationalization",
+        "Topic :: Software Development :: Localization",
+        "Topic :: Software Development :: Libraries :: Python Modules",
         "Topic :: Text Processing",
         "Topic :: Utilities",
     ],
-    python_requires=">=3.6",
-    packages=find_packages(exclude=["tests"]),
+    python_requires=">=3.8",
+    packages=find_packages(exclude=["*.tests", "*.tests.*", "tests.*", "tests"]),
     include_package_data=True,
-    # All data files matched by MANIFEST.in will get included
-    # if they are inside a package directory.
     zip_safe=False,
 )

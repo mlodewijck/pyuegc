@@ -1,5 +1,5 @@
 # pyuegc
-A pure Python implementation of the Unicode algorithm for breaking strings of text (i.e., code point sequences) into **extended grapheme clusters** (“user-perceived characters”) as specified in UAX #29, “Unicode Text Segmentation.” This package conforms to version&nbsp;16.0 of the Unicode standard, released in September&nbsp;2024, and has been rigorously tested against the official [Unicode test file](https://www.unicode.org/Public/16.0.0/ucd/auxiliary/GraphemeBreakTest.txt) to ensure accuracy.
+A pure-Python implementation of the Unicode algorithm for breaking strings of text (i.e., code point sequences) into **extended grapheme clusters** (“user-perceived characters”) as specified in UAX #29, “Unicode Text Segmentation.” This package conforms to version&nbsp;16.0 of the Unicode standard, released in September&nbsp;2024, and has been rigorously tested against the official [Unicode test file](https://www.unicode.org/Public/16.0.0/ucd/auxiliary/GraphemeBreakTest.txt) to ensure accuracy.
 
 ### Installation and updates
 To install the package, run:
@@ -11,6 +11,10 @@ To upgrade to the latest version, run:
 ```shell
 pip install pyuegc --upgrade
 ```
+
+### Changelog
+
+Check out the latest updates and changes [here](https://github.com/mlodewijck/pyuegc/blob/main/CHANGELOG.md).
 
 ### Unicode character database (UCD) version
 To retrieve the version of the Unicode character database in use:
