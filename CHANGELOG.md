@@ -1,5 +1,9 @@
 # Changelog
 
+## 16.0.2 - 2025-01-12
+
+- Fix issue related to regional indicator symbols [#4](https://github.com/mlodewijck/pyuegc/issues/4#issue-2782298629)
+
 ## 16.0.1 - 2025-01-05
 
 - Fix issue with data needed in regex pattern object used to match certain conjunct linker clusters.

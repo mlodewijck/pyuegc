@@ -6,7 +6,7 @@
 #     https://www.unicode.org/Public/16.0.0/ucd/DerivedCoreProperties.txt
 #
 # Output file:
-#     tools/generate_unicode/_unicode.py
+#     tools/_unicode.py
 #
 # The output file must be copied to the `pyuegc` directory.
 

@@ -142,11 +142,12 @@ def EGC(unistr):
     }
 
     break_positions = [0]
-
-    prev = ext_pictogr_index = None
-    regional_indicator_count = 0
+    prev = ext_pictogr_index = ri_count = None
 
     for i, curr in enumerate(elements):
+        if curr == "Regional_Indicator":
+            ri_count = ri_count + 1 if prev == "Regional_Indicator" else 0
+
         if i == 0:
             pass
 
@@ -166,15 +167,14 @@ def EGC(unistr):
             ):
                 break_positions.append(i)
 
-        elif curr == "Regional_Indicator" and prev == "Regional_Indicator":
+        elif (curr == "Regional_Indicator" and prev == "Regional_Indicator"
+            and ri_count % 2 == 0):
             # https://www.unicode.org/reports/tr29/tr29-45.html#GB12
             # https://www.unicode.org/reports/tr29/tr29-45.html#GB13
             # Do not break within emoji flag sequences. That is, do not break
             # between regional indicator (RI) symbols if there is an odd number
             # of RI characters before the break point.
-            regional_indicator_count += 1
-            if regional_indicator_count % 2 == 0:
-                break_positions.append(i)
+            break_positions.append(i)
 
         elif (prev, curr) in _BREAK_RULES:
             break_positions.append(i)
