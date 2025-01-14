@@ -18,7 +18,8 @@ UNICODE_FILE = "GraphemeBreakTest.txt"
 def parse_file():
     records = []
 
-    data_dir = os.path.join("pyuegc", "tests", "unicode_conformance", "data")
+    base_dir = os.path.dirname(os.path.abspath(__file__))
+    data_dir = os.path.join(base_dir, "data")
     path = os.path.join(data_dir, UNICODE_FILE)
 
     with open(path, encoding="utf-8") as f:

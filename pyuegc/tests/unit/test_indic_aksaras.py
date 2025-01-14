@@ -22,7 +22,8 @@ FILES = (
 def parse_file(filename):
     records = []
 
-    data_dir = os.path.join("pyuegc", "tests", "unit", "data")
+    base_dir = os.path.dirname(os.path.abspath(__file__))
+    data_dir = os.path.join(base_dir, "data")
     path = os.path.join(data_dir, filename)
 
     with open(path, encoding="utf-8-sig") as f:

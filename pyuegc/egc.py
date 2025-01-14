@@ -23,11 +23,11 @@ _PROP = {**_PROP_DICT, **dict.fromkeys(_EXT_PICTOGR, "Extended_Pictographic")}
 #   https://www.unicode.org/reports/tr29/tr29-45.html#GB9c
 #   https://www.unicode.org/reports/tr29/tr29-45.html#Regex_Definitions
 _RE_CONJUNCT_LINKER_CLUSTER = re.compile(
-    f"   [ {_INCB_CONSONANT}            ] "
-    f"   [ {_INCB_EXTEND}{_INCB_LINKER} ]*"
-    f"   [ {_INCB_LINKER}               ] "
-    f"   [ {_INCB_EXTEND}{_INCB_LINKER} ]*"
-    f"(?=[ {_INCB_CONSONANT}            ])", re.VERBOSE
+    f"   [{_INCB_CONSONANT}]            "
+    f"   [{_INCB_EXTEND}{_INCB_LINKER}]*"
+    f"   [{_INCB_LINKER}]               "
+    f"   [{_INCB_EXTEND}{_INCB_LINKER}]*"
+    f"(?=[{_INCB_CONSONANT}])           ", re.VERBOSE
 )
 
 del _PROP_DICT, _EXT_PICTOGR, _INCB_CONSONANT, _INCB_EXTEND, _INCB_LINKER
@@ -151,7 +151,7 @@ def EGC(unistr):
         if i == 0:
             pass
 
-        elif i in conjunct_linker_cluster_indices and prev is not None:
+        elif i in conjunct_linker_cluster_indices:
             # https://www.unicode.org/reports/tr29/tr29-45.html#GB9c
             # Do not break within certain combinations
             # with Indic_Conjunct_Break (InCB)=Linker.
